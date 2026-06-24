@@ -40,7 +40,13 @@
 
 ## Quick Start
 
-### Install via Homebrew (Recommended)
+### One-line Install
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/stelaino/vision-ocr-mcp/main/install.sh | bash
+```
+
+### Install via Homebrew
 
 ```bash
 brew install stelaino/tap/vision-ocr-mcp
