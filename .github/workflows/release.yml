@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.arch }}
+    runs-on: macos-15
+    strategy:
+      matrix:
+        include:
+          - arch: arm64
+            suffix: macos-arm64
+          - arch: x86_64
+            suffix: macos-amd64
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build release binary
+        run: swift build -c release --arch ${{ matrix.arch }}
+
+      - name: Package
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          BINARY=$(swift build -c release --arch ${{ matrix.arch }} --show-bin-path)/vision-ocr-mcp
+          tar czf vision-ocr-mcp-${VERSION}-${{ matrix.suffix }}.tar.gz \
+            -C "$(dirname "$BINARY")" vision-ocr-mcp
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.suffix }}
+          path: '*.tar.gz'
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*.tar.gz
+          generate_release_notes: true
